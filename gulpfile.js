@@ -28,7 +28,7 @@ function browserifyShare() {
 function bundleShare(b) {
   b.bundle()
     .pipe(source('glur.js'))
-    .pipe(gulp.dest('./dist'));
+    .pipe(gulp.dest('./example'));
 }
 
 gulp.task('browserify', function () {

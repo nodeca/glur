@@ -1,5 +1,7 @@
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="../dist/glur.js"></script>
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+<script src="http://code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+<script src="./glur.js"></script>
 <script src="./image-encoded.js"></script>
 <script> // performance.now polyfill
 (function () {
@@ -22,30 +24,66 @@
         return +(new Date());
     };
 })();
+
+(function () {
+    window.debounce = function(func, wait, immediate) {
+        var timeout, args, context, timestamp, result;
+
+        var later = function() {
+            var last = performance.now() - timestamp;
+
+            if (last < wait && last > 0) {
+                timeout = setTimeout(later, wait - last);
+            } else {
+                timeout = null;
+                if (!immediate) {
+                    result = func.apply(context, args);
+                    if (!timeout) context = args = null;
+                }
+            }
+        };
+
+        return function() {
+            context = this;
+            args = arguments;
+            timestamp = performance.now();
+            var callNow = immediate && !timeout;
+            if (!timeout) timeout = setTimeout(later, wait);
+            if (callNow) {
+                result = func.apply(context, args);
+                context = args = null;
+            }
+
+            return result;
+        };
+    };
+}) ();
 </script>
 
-
 <style>
-    #src {
+    canvas {
         border: 5px solid #ddd;
         max-width: 500px;
     }
 
-    #dst, #dst-cvs {
-        border: 5px solid #ddd;
+    #slider {
         max-width: 500px;
+    }
+
+    #amount {
+        border: 0;
+        color: #f6931f;
+        font-weight: bold;
     }
 </style>
 
-
 <p>
-    Original (<span id="src-info"></span>):<br>
-    <canvas id='src'></canvas>
-</p>
-
-<p>
-    Blurred (<span id="dst-info"></span>):<br>
+    Blurred (<span id="dst-info"></span>):<br/>
     <canvas id='dst'></canvas>
+    <br/><br/>
+    <label for="amount">Blur radius:</label>
+    <input type="text" id="amount" readonly>
+    <div id="slider"></div>
 </p>
 
 <script>
@@ -53,31 +91,43 @@
 
     img.src = imageEncoded;
 
-    img.onload = function () {
-        var src, dst, ctx, start;
-
-        // Draw original
-
-        src = $('#src')[0];
-        src.width = img.width;
-        src.height = img.height;
-
-        $('#src-info').text('' + img.width + ' x ' + img.height);
-
-        ctx = src.getContext("2d");
+    var fastBlurCanvas = debounce(function (radius) {
+        var dst, ctx;
+        dst = $('#dst')[0];
+        ctx = dst.getContext("2d");
         ctx.drawImage(img, 0, 0);
+        var start = performance.now();
+        window.glur.fastBlurCanvas(dst, radius, function (err) {
+            $('#amount').val(radius + ' (' + (performance.now() - start).toFixed(2) + 'ms)');
+        });
+    }, 200);
+
+    img.onload = function () {
+        var dst, ctx;
 
         dst = $('#dst')[0];
         dst.width = img.width;
         dst.height = img.height;
 
+        $('#dst-info').text(img.width + ' x ' + img.height);
+
         ctx = dst.getContext("2d");
         ctx.drawImage(img, 0, 0);
-
-        start = performance.now();
-
-        window.glur.fastBlurCanvas(dst, 4, function (err) {
-            $('#dst-info').text((performance.now() - start).toFixed(2) + 'ms');
-        });
+        fastBlurCanvas(10);
     };
+
+    $(function () {
+        var sliderEl = $("#slider");
+        sliderEl.slider({
+            range: "max",
+            min: 1,
+            max: 100,
+            value: 10,
+            slide: function (event, ui) {
+                $("#amount").val(ui.value);
+                fastBlurCanvas(ui.value);
+            }
+        });
+       $( "#amount" ).val(sliderEl.slider( "value" ));
+    });
 </script>
