@@ -76,7 +76,7 @@
 
         start = performance.now();
 
-        window.glur.blurCanvas(dst, 1, function (err) {
+        window.glur.fastBlurCanvas(dst, 4, function (err) {
             $('#dst-info').text((performance.now() - start).toFixed(2) + 'ms');
         });
     };
