@@ -12,9 +12,8 @@ var blurCanvas = function (canvas, radius, callback) {
   var src = imageData.data;
 
   var data32 = new Uint32Array(src.buffer);
-  var res = glur.blur32(data32, canvas.width, canvas.height, radius);
+  glur.blur32(data32, canvas.width, canvas.height, radius);
 
-  imageData.data.set(res);
   ctx.putImageData(imageData, 0, 0);
 
   callback();
@@ -26,9 +25,8 @@ var fastBlurCanvas = function (canvas, radius, callback) {
   var src = imageData.data;
 
   var data32 = new Uint32Array(src.buffer);
-  var res = iir_gauss.blur32(data32, canvas.width, canvas.height, radius);
+  iir_gauss.blur32(data32, canvas.width, canvas.height, radius);
 
-  imageData.data.set(res);
   ctx.putImageData(imageData, 0, 0);
 
   callback();
