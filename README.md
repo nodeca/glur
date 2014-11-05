@@ -1,4 +1,4 @@
 glur
 ====
 
-[Demo](http://andr83.github.io/glur/)
+[Demo](http://nodeca.github.io/glur/)
