@@ -33,7 +33,6 @@ var convolveMono16 = function (src, out, tmp, coeff, width, height) {
   var coeff_a2 = coeff[3];
 
   for (y = 0; y < height; y++) {
-    out_index = y + height * width - 1;
     y_offset = y * width;
 
     v = src[y_offset];
@@ -59,6 +58,8 @@ var convolveMono16 = function (src, out, tmp, coeff, width, height) {
     v1 = v0;
     v2 = v1;
 
+    out_index = y + height * width;
+
     for (x = width - 1; x >= 0; x--) {
       x_offset--;
 
@@ -70,9 +71,7 @@ var convolveMono16 = function (src, out, tmp, coeff, width, height) {
       v0 = v;
 
       out_index -= height;
-      if (out_index >= 0) { // this magical check is needed to avoid deopts in v8
-        out[out_index] = v;
-      }
+      out[out_index] = v;
     }
   }
 };

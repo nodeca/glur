@@ -34,7 +34,6 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
 
   // console.time('convolve');
   for (y = 0; y < height; y++) {
-    out_index = y + height * width - 1;
     y_offset = y * width;
 
     rgba = src[y_offset];
@@ -111,6 +110,8 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
     g2 = g1;
     b2 = b1;
     a2 = a1;
+
+    out_index = y + height * width;
 
     for (x = width - 1; x >= 0; x--) {
       x_offset -= 4;
