@@ -25,6 +25,8 @@
   },
   "main": "./index.js",
   "devDependencies": {
+    "ansi": "0.3.x",
+    "benchmark": "1.0.x",
     "browserify": "*",
     "gulp": "*",
     "watchify": "*",
