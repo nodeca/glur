@@ -1,7 +1,6 @@
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
 <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
 <script src="http://code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
-<script src="./glur.js"></script>
 <script src="./image-encoded.js"></script>
 <script> // performance.now polyfill
 (function () {
@@ -86,6 +85,12 @@
     <div id="slider"></div>
 </p>
 
+<script>// Stub to run node module without browserification
+    var module = {};
+</script>
+
+<script src="../index.js"></script>
+
 <script>
     var img = new Image();
 
@@ -96,10 +101,18 @@
         dst = $('#dst')[0];
         ctx = dst.getContext("2d");
         ctx.drawImage(img, 0, 0);
+
+        var imageData = ctx.getImageData(0, 0, dst.width, dst.height);
+        var src = imageData.data;
+        var data32 = new Uint32Array(src.buffer);
+
         var start = performance.now();
-        window.glur.fastBlurCanvas(dst, radius, function (err) {
-            $('#amount').val(radius + ' (' + (performance.now() - start).toFixed(2) + 'ms)');
-        });
+
+        module.exports(data32, dst.width, dst.height, radius);
+
+        ctx.putImageData(imageData, 0, 0);
+
+        $('#amount').val(radius + ' (' + (performance.now() - start).toFixed(2) + 'ms)');
     }, 200);
 
     img.onload = function () {
