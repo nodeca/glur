@@ -1,0 +1,155 @@
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+<script src="http://code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+<script src="./image-encoded.js"></script>
+<script> // performance.now polyfill
+(function () {
+    if (window.performance && window.performance.now) return;
+    if (!window.performance) window.performance = {};
+    var methods = ['webkitNow', 'msNow', 'mozNow'];
+    for (var i = 0; i < methods.length; i++) {
+        if (window.performance[methods[i]]) {
+            window.performance.now = window.performance[methods[i]];
+            return;
+        }
+    }
+    if (Date.now) {
+        window.performance.now = function () {
+            return Date.now();
+        };
+        return;
+    }
+    window.performance.now = function () {
+        return +(new Date());
+    };
+})();
+
+(function () {
+    window.debounce = function(func, wait, immediate) {
+        var timeout, args, context, timestamp, result;
+
+        var later = function() {
+            var last = performance.now() - timestamp;
+
+            if (last < wait && last > 0) {
+                timeout = setTimeout(later, wait - last);
+            } else {
+                timeout = null;
+                if (!immediate) {
+                    result = func.apply(context, args);
+                    if (!timeout) context = args = null;
+                }
+            }
+        };
+
+        return function() {
+            context = this;
+            args = arguments;
+            timestamp = performance.now();
+            var callNow = immediate && !timeout;
+            if (!timeout) timeout = setTimeout(later, wait);
+            if (callNow) {
+                result = func.apply(context, args);
+                context = args = null;
+            }
+
+            return result;
+        };
+    };
+}) ();
+</script>
+
+<style>
+    canvas {
+        border: 5px solid #ddd;
+        max-width: 500px;
+    }
+
+    #slider {
+        max-width: 500px;
+    }
+
+    #amount {
+        border: 0;
+        color: #f6931f;
+        font-weight: bold;
+    }
+</style>
+
+<p>
+    Blurred (<span id="dst-info"></span>):<br/>
+    <canvas id='dst'></canvas>
+    <br/><br/>
+    <label for="amount">Blur radius:</label>
+    <input type="text" id="amount" readonly>
+    <div id="slider"></div>
+</p>
+
+<script>// Stub to run node module without browserification
+    var module = {};
+</script>
+
+<script src="../mono16.js"></script>
+
+<script>
+    var img = new Image();
+
+    img.src = imageEncoded;
+
+    var fastBlurCanvas = debounce(function (radius) {
+        var dst = $('#dst')[0],
+            ctx = dst.getContext("2d");
+
+        ctx.drawImage(img, 0, 0);
+
+        var imageData = ctx.getImageData(0, 0, dst.width, dst.height);
+        var data = imageData.data;
+        var size = dst.width * dst.height;
+        var dataMono16 = new Uint16Array(size);
+        var i;
+        var start = performance.now();
+
+        for (i = 0; i < size; i++) {
+          dataMono16[i] = (data[4 * i] + data[4 * i + 1] + data[4 * i + 2]) / 3;
+        }
+
+        module.exports(dataMono16, dst.width, dst.height, radius);
+
+        for (i = 0; i < size; i++) {
+          data[4 * i] = data[4 * i + 1] = data[4 * i + 2] = dataMono16[i];
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+
+        $('#amount').val(radius + ' (' + (performance.now() - start).toFixed(2) + 'ms)');
+    }, 200);
+
+    img.onload = function () {
+        var dst, ctx;
+
+        dst = $('#dst')[0];
+        dst.width = img.width;
+        dst.height = img.height;
+
+        $('#dst-info').text(img.width + ' x ' + img.height);
+
+        ctx = dst.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        fastBlurCanvas(10);
+    };
+
+    $(function () {
+        var sliderEl = $("#slider");
+        sliderEl.slider({
+            range: "max",
+            min: 1,
+            max: 100,
+            value: 10,
+            slide: function (event, ui) {
+                $("#amount").val(ui.value);
+                fastBlurCanvas(ui.value);
+            }
+        });
+       $( "#amount" ).val(sliderEl.slider( "value" ));
+    });
+</script>
