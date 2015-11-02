@@ -14,19 +14,12 @@ var gaussCoef = function (sigma) {
 
   var z0_abs_2 = z0_abs * z0_abs;
 
-  var res = {
-    a0: 0.0,
-    a1: 0.0,
-    a2: 0.0,
-    b0: 0.0
-  };
-  res.a2 = 1.0 / (z2 * z0_abs_2);
-  res.a0 = (z0_abs_2 + 2 * z0_real * z2) * res.a2;
-  res.a1 = -(2 * z0_real + z2) * res.a2;
+  var a2 = 1.0 / (z2 * z0_abs_2),
+      a0 = (z0_abs_2 + 2 * z0_real * z2) * a2,
+      a1 = -(2 * z0_real + z2) * a2,
+      b0 = 1.0 - (a0 + a1 + a2);
 
-  res.b0 = 1.0 - (res.a0 + res.a1 + res.a2);
-
-  return res;
+  return new Float32Array([ b0, a0, a1, a2 ]);
 };
 
 
@@ -34,10 +27,10 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
   var x, y, rgb, r, g, b, a, out_index, y_offset, x_offset;
   var r0, g0, b0, a0, r1, g1, b1, a1, r2, g2, b2, a2;
 
-  var coeff_b0 = coeff.b0;
-  var coeff_a0 = coeff.a0;
-  var coeff_a1 = coeff.a1;
-  var coeff_a2 = coeff.a2;
+  var coeff_b0 = coeff[0];
+  var coeff_a0 = coeff[1];
+  var coeff_a1 = coeff[2];
+  var coeff_a2 = coeff[3];
 
   // console.time('convolve');
   for (y = 0; y < height; y++) {
@@ -66,6 +59,7 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
     b2 = b1;
 
     x_offset = 0;
+
     for (x = 0; x < width; x++) {
       rgb = src[y_offset + x];
       a = (rgb >> 24) & 0xff;
@@ -97,6 +91,7 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
       tmp[x_offset + 1] = r;
       tmp[x_offset + 2] = g;
       tmp[x_offset + 3] = b;
+
       x_offset += 4;
     }
 
@@ -117,6 +112,7 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
 
     for (x = width - 1; x >= 0; x--) {
       x_offset -= 4;
+
       a = tmp[x_offset];
       r = tmp[x_offset + 1];
       g = tmp[x_offset + 2];
