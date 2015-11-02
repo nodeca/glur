@@ -1,7 +1,7 @@
 {
   "name": "glur",
-  "description": "Fast gaussian blur implementation in pure javascript.",
-  "version": "0.0.0",
+  "description": "Fast Gaussian Blur in pure JavaScript, via IIR filer. Speed does not depend on blur radius.",
+  "version": "1.0.0",
   "keywords": [
     "blur",
     "gaussian"
@@ -9,6 +9,10 @@
   "homepage": "https://github.com/andr83/glur/issues",
   "license": "MIT",
   "repository": "nodeca/glur",
+  "files": [
+    "index.js",
+    "mono16.js"
+  ],
   "devDependencies": {
     "ansi": "0.3.x",
     "benchmark": "1.0.x"
