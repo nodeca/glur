@@ -1,37 +1,16 @@
 {
   "name": "glur",
-  "description": "Gaussian image blur for browser.",
+  "description": "Fast gaussian blur implementation in pure javascript.",
   "version": "0.0.0",
   "keywords": [
     "blur",
     "gaussian",
-    "image"
   ],
   "homepage": "https://github.com/andr83/glur/issues",
-  "contributors": [
-    "Andrei Tuputcyn (https://github.com/andr83)",
-    "Vitaly Puzrin (https://github.com/puzrin)"
-  ],
-  "bugs": {
-    "url": "https://github.com/andr83/glur/issues"
-  },
-  "license": {
-    "type": "MIT",
-    "url": "https://github.com/andr83/glur/blob/master/LICENSE"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:andr83/glur.git"
-  },
-  "main": "./index.js",
+  "license": "MIT",
+  "repository": "nodeca/glur",
   "devDependencies": {
     "ansi": "0.3.x",
-    "benchmark": "1.0.x",
-    "browserify": "*",
-    "gulp": "*",
-    "watchify": "*",
-    "vinyl-source-stream": "*",
-    "jshint": "*",
-    "uglify-js": "*"
+    "benchmark": "1.0.x"
   }
 }
