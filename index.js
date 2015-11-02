@@ -156,13 +156,14 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
 
 
 var blurRGBA = function (src, width, height, radius) {
-  var out = new Uint32Array(width * height * 4);
-  var tmp = new Float32Array(width * 4);
+  var src32    = new Uint32Array(src.buffer),
+      out      = new Uint32Array(width * height),
+      tmp_line = new Float32Array(width * 4);
 
   var coeff = gaussCoef(radius);
 
-  convolveRGBA(src, out, tmp, coeff, width, height, radius);
-  convolveRGBA(out, src, tmp, coeff, height, width, radius);
+  convolveRGBA(src32, out, tmp_line, coeff, width, height, radius);
+  convolveRGBA(out, src32, tmp_line, coeff, height, width, radius);
 };
 
 module.exports = blurRGBA;

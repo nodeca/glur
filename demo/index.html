@@ -97,18 +97,16 @@
     img.src = imageEncoded;
 
     var fastBlurCanvas = debounce(function (radius) {
-        var dst, ctx;
-        dst = $('#dst')[0];
-        ctx = dst.getContext("2d");
+        var dst = $('#dst')[0],
+            ctx = dst.getContext("2d");
+
         ctx.drawImage(img, 0, 0);
 
         var imageData = ctx.getImageData(0, 0, dst.width, dst.height);
-        var src = imageData.data;
-        var data32 = new Uint32Array(src.buffer);
 
         var start = performance.now();
 
-        module.exports(data32, dst.width, dst.height, radius);
+        module.exports(imageData.data, dst.width, dst.height, radius);
 
         ctx.putImageData(imageData, 0, 0);
 
