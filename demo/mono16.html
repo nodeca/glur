@@ -1,72 +1,16 @@
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
-<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
-<script src="http://code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+<script src="https://cdn.jsdelivr.net/jquery/2.1.4/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/lodash/3.10.1/lodash.min.js"></script>
 <script src="./image-encoded.js"></script>
-<script> // performance.now polyfill
-(function () {
-    if (window.performance && window.performance.now) return;
-    if (!window.performance) window.performance = {};
-    var methods = ['webkitNow', 'msNow', 'mozNow'];
-    for (var i = 0; i < methods.length; i++) {
-        if (window.performance[methods[i]]) {
-            window.performance.now = window.performance[methods[i]];
-            return;
-        }
-    }
-    if (Date.now) {
-        window.performance.now = function () {
-            return Date.now();
-        };
-        return;
-    }
-    window.performance.now = function () {
-        return +(new Date());
-    };
-})();
-
-(function () {
-    window.debounce = function(func, wait, immediate) {
-        var timeout, args, context, timestamp, result;
-
-        var later = function() {
-            var last = performance.now() - timestamp;
-
-            if (last < wait && last > 0) {
-                timeout = setTimeout(later, wait - last);
-            } else {
-                timeout = null;
-                if (!immediate) {
-                    result = func.apply(context, args);
-                    if (!timeout) context = args = null;
-                }
-            }
-        };
-
-        return function() {
-            context = this;
-            args = arguments;
-            timestamp = performance.now();
-            var callNow = immediate && !timeout;
-            if (!timeout) timeout = setTimeout(later, wait);
-            if (callNow) {
-                result = func.apply(context, args);
-                context = args = null;
-            }
-
-            return result;
-        };
-    };
-}) ();
-</script>
 
 <style>
     canvas {
-        border: 5px solid #ddd;
+        box-shadow: 0 0 1px #444;
         max-width: 500px;
     }
 
     #slider {
-        max-width: 500px;
+        width: 500px;
+        margin: 0;
     }
 
     #amount {
@@ -81,8 +25,8 @@
     <canvas id='dst'></canvas>
     <br/><br/>
     <label for="amount">Blur radius:</label>
-    <input type="text" id="amount" readonly>
-    <div id="slider"></div>
+    <input type="text" id="amount" readonly><br/>
+    <input id="slider" type="range" value=10 name="radius" min="1" max="100">
 </p>
 
 <script>// Stub to run node module without browserification
@@ -96,7 +40,7 @@
 
     img.src = imageEncoded;
 
-    var fastBlurCanvas = debounce(function (radius) {
+    var fastBlurCanvas = _.debounce(function (radius) {
         var dst = $('#dst')[0],
             ctx = dst.getContext("2d");
 
@@ -135,21 +79,16 @@
 
         ctx = dst.getContext("2d");
         ctx.drawImage(img, 0, 0);
-        fastBlurCanvas(10);
+        fastBlurCanvas(Number($('#slider').val()));
     };
 
     $(function () {
-        var sliderEl = $("#slider");
-        sliderEl.slider({
-            range: "max",
-            min: 1,
-            max: 100,
-            value: 10,
-            slide: function (event, ui) {
-                $("#amount").val(ui.value);
-                fastBlurCanvas(ui.value);
-            }
+        $('#slider').on('change input', function () {
+            var radius = Number($('#slider').val());
+            $('#amount').val(radius);
+            fastBlurCanvas(radius);
         });
-       $( "#amount" ).val(sliderEl.slider( "value" ));
+
+        $('#amount').val(Number($('#slider').val()));
     });
 </script>
