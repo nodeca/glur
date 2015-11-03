@@ -6,7 +6,8 @@ glur
 > Fast Gaussian Blur in pure JavaScript, via IIR filer. Speed does not depend on
 > blur radius.
 
-__[Demo](http://nodeca.github.io/glur/demo)__
+__[Demo 1](http://nodeca.github.io/glur/demo)__,
+__[Demo 2](http://nodeca.github.io/glur/demo/mono16.html)__.
 
 
 Install
@@ -30,6 +31,14 @@ API
 `require('glur/mono16')(src, width, height, radius)` - the same as above, but
 input data is grayscale Uint16Array. Can be useful to calculate unsharp mask via
 brightness/ligthness channel.
+
+
+Authors
+-------
+
+- Andrey Tupitsin [@anrd83](https://github.com/andr83)
+- Alexander Rodin [@a-rodin](https://github.com/a-rodin)
+- Vitaly Puzrin [@puzrin](https://github.com/puzrin)
 
 
 References
