@@ -24,7 +24,7 @@ var gaussCoef = function (sigma) {
 
 
 var convolveRGBA = function (src, out, tmp, coeff, width, height) {
-  var x, y, rgba, r, g, b, a, out_index, y_offset, x_offset;
+  var x, y, rgba, r, g, b, a, out_offs, in_offs, line_buf_offs;
   var r0, g0, b0, a0, r1, g1, b1, a1, r2, g2, b2, a2;
 
   var coeff_b0 = coeff[0];
@@ -34,14 +34,14 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
 
   // console.time('convolve');
   for (y = 0; y < height; y++) {
-    y_offset = y * width;
+    in_offs = y * width * 4;
 
-    rgba = src[y_offset];
+    rgba = src[in_offs];
 
-    r = rgba & 0xff;
-    g = (rgba >> 8) & 0xff;
-    b = (rgba >> 16) & 0xff;
-    a = (rgba >> 24) & 0xff;
+    r = src[in_offs];
+    g = src[in_offs + 1];
+    b = src[in_offs + 2];
+    a = src[in_offs + 3];
 
     r0 = r;
     g0 = g;
@@ -58,15 +58,15 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
     b2 = b1;
     a2 = a1;
 
-    x_offset = 0;
+    line_buf_offs = 0;
 
     for (x = 0; x < width; x++) {
-      rgba = src[y_offset + x];
+      r = src[in_offs];
+      g = src[in_offs + 1];
+      b = src[in_offs + 2];
+      a = src[in_offs + 3];
 
-      r = rgba & 0xff;
-      g = (rgba >> 8) & 0xff;
-      b = (rgba >> 16) & 0xff;
-      a = (rgba >> 24) & 0xff;
+      in_offs += 4;
 
       r = coeff_b0 * r + (coeff_a0 * r0 + coeff_a1 * r1 + coeff_a2 * r2);
       g = coeff_b0 * g + (coeff_a0 * g0 + coeff_a1 * g1 + coeff_a2 * g2);
@@ -88,12 +88,12 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
       b0 = b;
       a0 = a;
 
-      tmp[x_offset] = r;
-      tmp[x_offset + 1] = g;
-      tmp[x_offset + 2] = b;
-      tmp[x_offset + 3] = a;
+      tmp[line_buf_offs    ] = r;
+      tmp[line_buf_offs + 1] = g;
+      tmp[line_buf_offs + 2] = b;
+      tmp[line_buf_offs + 3] = a;
 
-      x_offset += 4;
+      line_buf_offs += 4;
     }
 
     r0 = r;
@@ -111,15 +111,15 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
     b2 = b1;
     a2 = a1;
 
-    out_index = y + height * width;
+    out_offs = (y + height * width) * 4;
 
     for (x = width - 1; x >= 0; x--) {
-      x_offset -= 4;
+      line_buf_offs -= 4;
 
-      r = tmp[x_offset];
-      g = tmp[x_offset + 1];
-      b = tmp[x_offset + 2];
-      a = tmp[x_offset + 3];
+      r = tmp[line_buf_offs];
+      g = tmp[line_buf_offs + 1];
+      b = tmp[line_buf_offs + 2];
+      a = tmp[line_buf_offs + 3];
 
       r = coeff_b0 * r + (coeff_a0 * r0 + coeff_a1 * r1 + coeff_a2 * r2);
       g = coeff_b0 * g + (coeff_a0 * g0 + coeff_a1 * g1 + coeff_a2 * g2);
@@ -141,13 +141,12 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
       b0 = b;
       a0 = a;
 
-      r = (r |0) & 0xff;
-      g = (g |0) & 0xff;
-      b = (b |0) & 0xff;
-      a = (a |0) & 0xff;
+      out_offs -= height * 4;
 
-      out_index -= height;
-      out[out_index] = (a << 24) | (b << 16) | (g << 8) | r;
+      out[out_offs    ] = (r |0) & 0xff;
+      out[out_offs + 1] = (g |0) & 0xff;
+      out[out_offs + 2] = (b |0) & 0xff;
+      out[out_offs + 3] = (a |0) & 0xff;
     }
   }
   // console.timeEnd('convolve');
@@ -155,14 +154,16 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
 
 
 var blurRGBA = function (src, width, height, radius) {
-  var src32    = new Uint32Array(src.buffer),
-      out      = new Uint32Array(width * height),
+  // Unify input data type, to keep convolver calls isomorphic
+  var srcUint8 = new Uint8Array(src.buffer);
+
+  var out      = new Uint8Array(srcUint8.length),
       tmp_line = new Float32Array(width * 4);
 
   var coeff = gaussCoef(radius);
 
-  convolveRGBA(src32, out, tmp_line, coeff, width, height, radius);
-  convolveRGBA(out, src32, tmp_line, coeff, height, width, radius);
+  convolveRGBA(srcUint8, out, tmp_line, coeff, width, height, radius);
+  convolveRGBA(out, srcUint8, tmp_line, coeff, height, width, radius);
 };
 
 module.exports = blurRGBA;

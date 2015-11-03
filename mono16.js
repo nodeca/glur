@@ -24,7 +24,7 @@ var gaussCoef = function (sigma) {
 
 
 var convolveMono16 = function (src, out, tmp, coeff, width, height) {
-  var x, y, out_index, y_offset, x_offset;
+  var x, y, out_offs, in_offs, line_buf_offs;
   var v, v0, v1, v2;
 
   var coeff_b0 = coeff[0];
@@ -33,52 +33,57 @@ var convolveMono16 = function (src, out, tmp, coeff, width, height) {
   var coeff_a2 = coeff[3];
 
   for (y = 0; y < height; y++) {
-    y_offset = y * width;
+    in_offs = y * width;
 
-    v = src[y_offset];
+    v = src[in_offs];
     v0 = v;
     v1 = v0;
     v2 = v1;
 
-    x_offset = 0;
+    line_buf_offs = 0;
 
     for (x = 0; x < width; x++) {
-      v = src[y_offset + x];
+      v = src[in_offs];
+
+      in_offs++;
+
       v = coeff_b0 * v + (coeff_a0 * v0 + coeff_a1 * v1 + coeff_a2 * v2);
 
       v2 = v1;
       v1 = v0;
       v0 = v;
 
-      tmp[x_offset] = v;
-      x_offset++;
+      tmp[line_buf_offs] = v;
+
+      line_buf_offs++;
     }
 
     v0 = v;
     v1 = v0;
     v2 = v1;
 
-    out_index = y + height * width;
+    out_offs = y + height * width;
 
     for (x = width - 1; x >= 0; x--) {
-      x_offset--;
+      line_buf_offs--;
 
-      v = tmp[x_offset];
+      v = tmp[line_buf_offs];
       v = coeff_b0 * v + (coeff_a0 * v0 + coeff_a1 * v1 + coeff_a2 * v2);
 
       v2 = v1;
       v1 = v0;
       v0 = v;
 
-      out_index -= height;
-      out[out_index] = v;
+      out_offs -= height;
+
+      out[out_offs] = v;
     }
   }
 };
 
 
 var blurMono16 = function (src, width, height, radius) {
-  var out      = new Uint16Array(width * height),
+  var out      = new Uint16Array(src.length),
       tmp_line = new Float32Array(width);
 
   var coeff = gaussCoef(radius);
