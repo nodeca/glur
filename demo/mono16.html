@@ -22,12 +22,14 @@
 
 <p>
     Blurred (<span id="dst-info"></span>):<br/>
-    <canvas id='dst'></canvas>
+    <canvas id='dst' title='Click to select image'></canvas>
     <br/><br/>
     <label for="amount">Blur radius:</label>
     <input type="text" id="amount" readonly><br/>
     <input id="slider" type="range" value=10 name="radius" min="1" max="100">
 </p>
+
+<input id="upload" type="file" style="position: absolute; left: -2000px">
 
 <script>// Stub to run node module without browserification
     var module = {};
@@ -91,4 +93,17 @@
 
         $('#amount').val(Number($('#slider').val()));
     });
+
+    $('#dst').on('click', function () {
+        $('#upload').trigger('click');
+    });
+
+    $('#upload').on('change', function () {
+        var files = $(this)[0].files;
+
+        if (files.length === 0) { return; }
+
+        img.src = window.URL.createObjectURL(files[0]);
+    });
+
 </script>
