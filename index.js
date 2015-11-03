@@ -23,6 +23,9 @@ var gaussCoef = function (sigma) {
 };
 
 
+function clampTo8(i) { return i < 0 ? 0 : (i > 255 ? 255 : i); }
+
+
 var convolveRGBA = function (src, out, tmp, coeff, width, height) {
   var x, y, rgba, r, g, b, a, out_offs, in_offs, line_buf_offs;
   var r0, g0, b0, a0, r1, g1, b1, a1, r2, g2, b2, a2;
@@ -143,10 +146,10 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
 
       out_offs -= height * 4;
 
-      out[out_offs    ] = (r |0) & 0xff;
-      out[out_offs + 1] = (g |0) & 0xff;
-      out[out_offs + 2] = (b |0) & 0xff;
-      out[out_offs + 3] = (a |0) & 0xff;
+      out[out_offs    ] = clampTo8((r + .5) |0);
+      out[out_offs + 1] = clampTo8((g + .5) |0);
+      out[out_offs + 2] = clampTo8((b + .5) |0);
+      out[out_offs + 3] = clampTo8((a + .5) |0);
     }
   }
   // console.timeEnd('convolve');

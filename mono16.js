@@ -23,6 +23,9 @@ var gaussCoef = function (sigma) {
 };
 
 
+function clampTo16(i) { return i < 0 ? 0 : (i > 65535 ? 65535 : i); }
+
+
 var convolveMono16 = function (src, out, tmp, coeff, width, height) {
   var x, y, out_offs, in_offs, line_buf_offs;
   var v, v0, v1, v2;
@@ -76,7 +79,7 @@ var convolveMono16 = function (src, out, tmp, coeff, width, height) {
 
       out_offs -= height;
 
-      out[out_offs] = v;
+      out[out_offs] = clampTo16((v + .5) |0);
     }
   }
 };
