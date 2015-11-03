@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 /*eslint-env node */
+/*eslint-disable no-console*/
 
 'use strict';
 
@@ -28,14 +29,12 @@ fs.readdirSync(IMPLS_DIRECTORY).sort().forEach(function (name) {
 });
 
 
-var SAMPLES_SRC = [
-  {
-    name: 'Big',
-    width: 3200,
-    height: 2500,
-    radius: 50
-  }
-];
+var SAMPLES_SRC = [ {
+  name: 'Big',
+  width: 3200,
+  height: 2500,
+  radius: 50
+} ];
 
 var SAMPLES = [];
 

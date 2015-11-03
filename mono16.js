@@ -9,7 +9,7 @@ var gaussCoef = function (sigma) {
   var z0_abs = Math.exp(coef_A);
 
   var z0_real = z0_abs * Math.cos(coef_W);
-  var z0_im = z0_abs * Math.sin(coef_W);
+  // var z0_im = z0_abs * Math.sin(coef_W);
   var z2 = Math.exp(coef_B);
 
   var z0_abs_2 = z0_abs * z0_abs;
@@ -79,7 +79,7 @@ var convolveMono16 = function (src, out, tmp, coeff, width, height) {
 
       out_offs -= height;
 
-      out[out_offs] = clampTo16((v + .5) |0);
+      out[out_offs] = clampTo16((v + 0.5) |0);
     }
   }
 };

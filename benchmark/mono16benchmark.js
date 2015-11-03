@@ -1,15 +1,18 @@
 #!/usr/bin/env node
 /*eslint-env node */
+/*eslint-disable no-console*/
 
 'use strict';
 
 
-var path      = require('path');
 var util      = require('util');
 var Benchmark = require('benchmark');
 var ansi      = require('ansi');
 var cursor    = ansi(process.stdout);
-var mono16 = require('../mono16');
+
+
+var mono16    = require('../mono16');
+
 
 var IMPLS = [ {
   name: 'glur-mono16',
@@ -20,14 +23,12 @@ var IMPLS = [ {
   }
 } ];
 
-var SAMPLES_SRC = [
-  {
-    name: 'Big',
-    width: 3200,
-    height: 2500,
-    radius: 50
-  }
-];
+var SAMPLES_SRC = [ {
+  name: 'Big',
+  width: 3200,
+  height: 2500,
+  radius: 50
+} ];
 
 var SAMPLES = [];
 

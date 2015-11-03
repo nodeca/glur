@@ -1,6 +1,7 @@
 glur
 ====
 
+[![Build Status](https://travis-ci.org/nodeca/glur.svg?branch=master)](https://travis-ci.org/nodeca/glur)
 [![NPM version](https://img.shields.io/npm/v/glur.svg)](https://www.npmjs.org/package/glur)
 
 > Fast Gaussian Blur in pure JavaScript, via IIR filer. Speed does not depend on

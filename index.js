@@ -9,7 +9,7 @@ var gaussCoef = function (sigma) {
   var z0_abs = Math.exp(coef_A);
 
   var z0_real = z0_abs * Math.cos(coef_W);
-  var z0_im = z0_abs * Math.sin(coef_W);
+  // var z0_im = z0_abs * Math.sin(coef_W);
   var z2 = Math.exp(coef_B);
 
   var z0_abs_2 = z0_abs * z0_abs;
@@ -27,7 +27,7 @@ function clampTo8(i) { return i < 0 ? 0 : (i > 255 ? 255 : i); }
 
 
 var convolveRGBA = function (src, out, tmp, coeff, width, height) {
-  var x, y, rgba, r, g, b, a, out_offs, in_offs, line_buf_offs;
+  var x, y, r, g, b, a, out_offs, in_offs, line_buf_offs;
   var r0, g0, b0, a0, r1, g1, b1, a1, r2, g2, b2, a2;
 
   var coeff_b0 = coeff[0];
@@ -39,7 +39,7 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
   for (y = 0; y < height; y++) {
     in_offs = y * width * 4;
 
-    rgba = src[in_offs];
+    // rgba = src[in_offs];
 
     r = src[in_offs];
     g = src[in_offs + 1];
@@ -91,6 +91,7 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
       b0 = b;
       a0 = a;
 
+      /*eslint-disable computed-property-spacing*/
       tmp[line_buf_offs    ] = r;
       tmp[line_buf_offs + 1] = g;
       tmp[line_buf_offs + 2] = b;
@@ -146,10 +147,11 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
 
       out_offs -= height * 4;
 
-      out[out_offs    ] = clampTo8((r + .5) |0);
-      out[out_offs + 1] = clampTo8((g + .5) |0);
-      out[out_offs + 2] = clampTo8((b + .5) |0);
-      out[out_offs + 3] = clampTo8((a + .5) |0);
+      /*eslint-disable computed-property-spacing*/
+      out[out_offs    ] = clampTo8((r + 0.5) |0);
+      out[out_offs + 1] = clampTo8((g + 0.5) |0);
+      out[out_offs + 2] = clampTo8((b + 0.5) |0);
+      out[out_offs + 3] = clampTo8((a + 0.5) |0);
     }
   }
   // console.timeEnd('convolve');
