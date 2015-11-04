@@ -26,7 +26,7 @@
     <br/><br/>
     <label for="amount">Blur radius:</label>
     <input type="text" id="amount" readonly><br/>
-    <input id="slider" type="range" value=10 name="radius" min="1" max="100">
+    <input id="slider" type="range" value=10 name="radius" min="0" max="100">
 </p>
 
 <input id="upload" type="file" style="position: absolute; left: -2000px">
@@ -38,11 +38,16 @@
 <script src="../mono16.js"></script>
 
 <script>
-    var img = new Image();
+    var lastRadius,
+        img = new Image();
 
     img.src = imageEncoded;
 
     var fastBlurCanvas = _.debounce(function (radius) {
+        // Quick check if radius changed.
+        if (radius === lastRadius) { return; }
+        lastRadius = radius;
+
         var dst = $('#dst')[0],
             ctx = dst.getContext("2d");
 
@@ -81,6 +86,9 @@
 
         ctx = dst.getContext("2d");
         ctx.drawImage(img, 0, 0);
+
+        lastRadius = -Infinity;
+
         fastBlurCanvas(Number($('#slider').val()));
     };
 

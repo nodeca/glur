@@ -86,6 +86,9 @@ var convolveMono16 = function (src, out, tmp, coeff, width, height) {
 
 
 var blurMono16 = function (src, width, height, radius) {
+  // Quick exit on zero radius
+  if (!radius) { return; }
+
   var out      = new Uint16Array(src.length),
       tmp_line = new Float32Array(width);
 

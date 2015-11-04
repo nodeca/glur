@@ -161,6 +161,9 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
 
 
 var blurRGBA = function (src, width, height, radius) {
+  // Quick exit on zero radius
+  if (!radius) { return; }
+
   // Unify input data type, to keep convolver calls isomorphic
   var src32 = new Uint32Array(src.buffer);
 
