@@ -7,8 +7,8 @@ glur
 > Fast Gaussian Blur in pure JavaScript, via IIR filer. Speed does not depend on
 > blur radius.
 
-__[Demo 1](http://nodeca.github.io/glur/demo)__,
-__[Demo 2](http://nodeca.github.io/glur/demo/mono16.html)__.
+__[demo 1](http://nodeca.github.io/glur/demo)__,
+__[demo 2](http://nodeca.github.io/glur/demo/mono16.html)__.
 
 
 Install

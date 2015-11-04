@@ -1,7 +1,7 @@
 {
   "name": "glur",
   "description": "Fast Gaussian Blur in pure JavaScript, via IIR filer. Speed does not depend on blur radius.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "keywords": [
     "blur",
     "gaussian"
