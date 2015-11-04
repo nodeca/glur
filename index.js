@@ -27,7 +27,7 @@ function clampTo8(i) { return i < 0 ? 0 : (i > 255 ? 255 : i); }
 
 
 var convolveRGBA = function (src, out, tmp, coeff, width, height) {
-  var x, y, r, g, b, a, out_offs, in_offs, line_buf_offs;
+  var x, y, rgba, r, g, b, a, out_offs, in_offs, line_buf_offs;
   var r0, g0, b0, a0, r1, g1, b1, a1, r2, g2, b2, a2;
 
   var coeff_b0 = coeff[0];
@@ -37,14 +37,14 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
 
   // console.time('convolve');
   for (y = 0; y < height; y++) {
-    in_offs = y * width * 4;
+    in_offs = y * width;
 
-    // rgba = src[in_offs];
+    rgba = src[in_offs];
 
-    r = src[in_offs];
-    g = src[in_offs + 1];
-    b = src[in_offs + 2];
-    a = src[in_offs + 3];
+    r = rgba & 0xff;
+    g = (rgba >> 8) & 0xff;
+    b = (rgba >> 16) & 0xff;
+    a = (rgba >> 24) & 0xff;
 
     r0 = r;
     g0 = g;
@@ -64,12 +64,14 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
     line_buf_offs = 0;
 
     for (x = 0; x < width; x++) {
-      r = src[in_offs];
-      g = src[in_offs + 1];
-      b = src[in_offs + 2];
-      a = src[in_offs + 3];
+      rgba = src[in_offs];
 
-      in_offs += 4;
+      r = rgba & 0xff;
+      g = (rgba >> 8) & 0xff;
+      b = (rgba >> 16) & 0xff;
+      a = (rgba >> 24) & 0xff;
+
+      in_offs++;
 
       r = coeff_b0 * r + (coeff_a0 * r0 + coeff_a1 * r1 + coeff_a2 * r2);
       g = coeff_b0 * g + (coeff_a0 * g0 + coeff_a1 * g1 + coeff_a2 * g2);
@@ -115,7 +117,7 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
     b2 = b1;
     a2 = a1;
 
-    out_offs = (y + height * width) * 4;
+    out_offs = y + height * width;
 
     for (x = width - 1; x >= 0; x--) {
       line_buf_offs -= 4;
@@ -145,13 +147,13 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
       b0 = b;
       a0 = a;
 
-      out_offs -= height * 4;
+      out_offs -= height;
 
       /*eslint-disable computed-property-spacing*/
-      out[out_offs    ] = clampTo8((r + 0.5) |0);
-      out[out_offs + 1] = clampTo8((g + 0.5) |0);
-      out[out_offs + 2] = clampTo8((b + 0.5) |0);
-      out[out_offs + 3] = clampTo8((a + 0.5) |0);
+      out[out_offs] = clampTo8((r + 0.5) |0) |
+                     (clampTo8((g + 0.5) |0) << 8) |
+                     (clampTo8((b + 0.5) |0) << 16) |
+                     (clampTo8((a + 0.5) |0) << 24);
     }
   }
   // console.timeEnd('convolve');
@@ -160,15 +162,15 @@ var convolveRGBA = function (src, out, tmp, coeff, width, height) {
 
 var blurRGBA = function (src, width, height, radius) {
   // Unify input data type, to keep convolver calls isomorphic
-  var srcUint8 = new Uint8Array(src.buffer);
+  var src32 = new Uint32Array(src.buffer);
 
-  var out      = new Uint8Array(srcUint8.length),
+  var out      = new Uint32Array(src32.length),
       tmp_line = new Float32Array(width * 4);
 
   var coeff = gaussCoef(radius);
 
-  convolveRGBA(srcUint8, out, tmp_line, coeff, width, height, radius);
-  convolveRGBA(out, srcUint8, tmp_line, coeff, height, width, radius);
+  convolveRGBA(src32, out, tmp_line, coeff, width, height, radius);
+  convolveRGBA(out, src32, tmp_line, coeff, height, width, radius);
 };
 
 module.exports = blurRGBA;
