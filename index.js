@@ -1,166 +1,183 @@
-var gaussCoef = function (sigma) {
-  var sigma_inv_4 = sigma * sigma;
-  sigma_inv_4 = 1.0 / (sigma_inv_4 * sigma_inv_4);
+// Calculate Gaussian blur of an image using IIR filter
+// The method is taken from Intel's white paper and code example attached to it:
+// https://software.intel.com/en-us/articles/iir-gaussian-blur-filter
+// -implementation-using-intel-advanced-vector-extensions
 
-  var coef_A = sigma_inv_4 * (sigma * (sigma * (sigma * 1.1442707 + 0.0130625) - 0.7500910) + 0.2546730);
-  var coef_W = sigma_inv_4 * (sigma * (sigma * (sigma * 1.3642870 + 0.0088755) - 0.3255340) + 0.3016210);
-  var coef_B = sigma_inv_4 * (sigma * (sigma * (sigma * 1.2397166 - 0.0001644) - 0.6363580) - 0.0536068);
+var a0, a1, a2, a3, b1, b2, left_corner, right_corner;
 
-  var z0_abs = Math.exp(coef_A);
+function gaussCoef(sigma) {
+  if (sigma < 0.5) {
+    sigma = 0.5;
+  }
 
-  var z0_real = z0_abs * Math.cos(coef_W);
-  // var z0_im = z0_abs * Math.sin(coef_W);
-  var z2 = Math.exp(coef_B);
+  var a = Math.exp(0.726 * 0.726) / sigma,
+      g1 = Math.exp(-a),
+      g2 = Math.exp(-2 * a),
+      k = (1 - g1) * (1 - g1) / (1 + 2 * a * g1 - g2);
 
-  var z0_abs_2 = z0_abs * z0_abs;
+  a0 = k;
+  a1 = k * (a - 1) * g1;
+  a2 = k * (a + 1) * g1;
+  a3 = -k * g2;
+  b1 = 2 * g1;
+  b2 = -g2;
+  left_corner = (a0 + a1) / (1 - b1 - b2);
+  right_corner = (a2 + a3) / (1 - b1 - b2);
 
-  var a2 = 1.0 / (z2 * z0_abs_2),
-      a0 = (z0_abs_2 + 2 * z0_real * z2) * a2,
-      a1 = -(2 * z0_real + z2) * a2,
-      b0 = 1.0 - (a0 + a1 + a2);
+  // Attempt to force type to FP32.
+  return new Float32Array([ a0, a1, a2, a3, b1, b2, left_corner, right_corner ]);
+}
 
-  return new Float32Array([ b0, a0, a1, a2 ]);
-};
+function convolveRGBA(src, out, line, coeff, width, height) {
+  // takes src image and writes the blurred and transposed result into out
 
+  var rgba;
+  var prev_src_r, prev_src_g, prev_src_b, prev_src_a;
+  var curr_src_r, curr_src_g, curr_src_b, curr_src_a;
+  var curr_out_r, curr_out_g, curr_out_b, curr_out_a;
+  var prev_out_r, prev_out_g, prev_out_b, prev_out_a;
+  var prev_prev_out_r, prev_prev_out_g, prev_prev_out_b, prev_prev_out_a;
 
-function clampTo8(i) { return i < 0 ? 0 : (i > 255 ? 255 : i); }
+  var src_index, out_index, line_index;
+  var i, j;
+  var coeff_a0, coeff_a1, coeff_b1, coeff_b2;
 
+  for (i = 0; i < height; i++) {
+    src_index = i * width;
+    out_index = i;
+    line_index = 0;
 
-var convolveRGBA = function (src, out, tmp, coeff, width, height) {
-  var x, y, rgba, r, g, b, a, out_offs, in_offs, line_buf_offs;
-  var r0, g0, b0, a0, r1, g1, b1, a1, r2, g2, b2, a2;
+    // left to right
+    rgba = src[src_index];
 
-  var coeff_b0 = coeff[0];
-  var coeff_a0 = coeff[1];
-  var coeff_a1 = coeff[2];
-  var coeff_a2 = coeff[3];
+    prev_src_r = rgba & 0xff;
+    prev_src_g = (rgba >> 8) & 0xff;
+    prev_src_b = (rgba >> 16) & 0xff;
+    prev_src_a = (rgba >> 24) & 0xff;
 
-  // console.time('convolve');
-  for (y = 0; y < height; y++) {
-    in_offs = y * width;
+    prev_prev_out_r = prev_src_r * coeff[6];
+    prev_prev_out_g = prev_src_g * coeff[6];
+    prev_prev_out_b = prev_src_b * coeff[6];
+    prev_prev_out_a = prev_src_a * coeff[6];
 
-    rgba = src[in_offs];
+    prev_out_r = prev_prev_out_r;
+    prev_out_g = prev_prev_out_g;
+    prev_out_b = prev_prev_out_b;
+    prev_out_a = prev_prev_out_a;
 
-    r = rgba & 0xff;
-    g = (rgba >> 8) & 0xff;
-    b = (rgba >> 16) & 0xff;
-    a = (rgba >> 24) & 0xff;
+    coeff_a0 = coeff[0];
+    coeff_a1 = coeff[1];
+    coeff_b1 = coeff[4];
+    coeff_b2 = coeff[5];
 
-    r0 = r;
-    g0 = g;
-    b0 = b;
-    a0 = a;
+    for (j = 0; j < width; j++) {
+      rgba = src[src_index];
+      curr_src_r = rgba & 0xff;
+      curr_src_g = (rgba >> 8) & 0xff;
+      curr_src_b = (rgba >> 16) & 0xff;
+      curr_src_a = (rgba >> 24) & 0xff;
 
-    r1 = r0;
-    g1 = g0;
-    b1 = b0;
-    a1 = a0;
+      curr_out_r = curr_src_r * coeff_a0 + prev_src_r * coeff_a1 + prev_out_r * coeff_b1 + prev_prev_out_r * coeff_b2;
+      curr_out_g = curr_src_g * coeff_a0 + prev_src_g * coeff_a1 + prev_out_g * coeff_b1 + prev_prev_out_g * coeff_b2;
+      curr_out_b = curr_src_b * coeff_a0 + prev_src_b * coeff_a1 + prev_out_b * coeff_b1 + prev_prev_out_b * coeff_b2;
+      curr_out_a = curr_src_a * coeff_a0 + prev_src_a * coeff_a1 + prev_out_a * coeff_b1 + prev_prev_out_a * coeff_b2;
 
-    r2 = r1;
-    g2 = g1;
-    b2 = b1;
-    a2 = a1;
+      prev_prev_out_r = prev_out_r;
+      prev_prev_out_g = prev_out_g;
+      prev_prev_out_b = prev_out_b;
+      prev_prev_out_a = prev_out_a;
 
-    line_buf_offs = 0;
+      prev_out_r = curr_out_r;
+      prev_out_g = curr_out_g;
+      prev_out_b = curr_out_b;
+      prev_out_a = curr_out_a;
 
-    for (x = 0; x < width; x++) {
-      rgba = src[in_offs];
+      prev_src_r = curr_src_r;
+      prev_src_g = curr_src_g;
+      prev_src_b = curr_src_b;
+      prev_src_a = curr_src_a;
 
-      r = rgba & 0xff;
-      g = (rgba >> 8) & 0xff;
-      b = (rgba >> 16) & 0xff;
-      a = (rgba >> 24) & 0xff;
-
-      in_offs++;
-
-      r = coeff_b0 * r + (coeff_a0 * r0 + coeff_a1 * r1 + coeff_a2 * r2);
-      g = coeff_b0 * g + (coeff_a0 * g0 + coeff_a1 * g1 + coeff_a2 * g2);
-      b = coeff_b0 * b + (coeff_a0 * b0 + coeff_a1 * b1 + coeff_a2 * b2);
-      a = coeff_b0 * a + (coeff_a0 * a0 + coeff_a1 * a1 + coeff_a2 * a2);
-
-      r2 = r1;
-      g2 = g1;
-      b2 = b1;
-      a2 = a1;
-
-      r1 = r0;
-      g1 = g0;
-      b1 = b0;
-      a1 = a0;
-
-      r0 = r;
-      g0 = g;
-      b0 = b;
-      a0 = a;
-
-      /*eslint-disable computed-property-spacing*/
-      tmp[line_buf_offs    ] = r;
-      tmp[line_buf_offs + 1] = g;
-      tmp[line_buf_offs + 2] = b;
-      tmp[line_buf_offs + 3] = a;
-
-      line_buf_offs += 4;
+      line[line_index] = prev_out_r;
+      line[line_index + 1] = prev_out_g;
+      line[line_index + 2] = prev_out_b;
+      line[line_index + 3] = prev_out_a;
+      line_index += 4;
+      src_index++;
     }
 
-    r0 = r;
-    g0 = g;
-    b0 = b;
-    a0 = a;
+    src_index--;
+    line_index -= 4;
+    out_index += height * (width - 1);
 
-    r1 = r0;
-    g1 = g0;
-    b1 = b0;
-    a1 = a0;
+    // right to left
+    rgba = src[src_index];
 
-    r2 = r1;
-    g2 = g1;
-    b2 = b1;
-    a2 = a1;
+    prev_src_r = rgba & 0xff;
+    prev_src_g = (rgba >> 8) & 0xff;
+    prev_src_b = (rgba >> 16) & 0xff;
+    prev_src_a = (rgba >> 24) & 0xff;
 
-    out_offs = y + height * width;
+    prev_prev_out_r = prev_src_r * coeff[7];
+    prev_prev_out_g = prev_src_g * coeff[7];
+    prev_prev_out_b = prev_src_b * coeff[7];
+    prev_prev_out_a = prev_src_a * coeff[7];
 
-    for (x = width - 1; x >= 0; x--) {
-      line_buf_offs -= 4;
+    prev_out_r = prev_prev_out_r;
+    prev_out_g = prev_prev_out_g;
+    prev_out_b = prev_prev_out_b;
+    prev_out_a = prev_prev_out_a;
 
-      r = tmp[line_buf_offs];
-      g = tmp[line_buf_offs + 1];
-      b = tmp[line_buf_offs + 2];
-      a = tmp[line_buf_offs + 3];
+    curr_src_r = prev_src_r;
+    curr_src_g = prev_src_g;
+    curr_src_b = prev_src_b;
+    curr_src_a = prev_src_a;
 
-      r = coeff_b0 * r + (coeff_a0 * r0 + coeff_a1 * r1 + coeff_a2 * r2);
-      g = coeff_b0 * g + (coeff_a0 * g0 + coeff_a1 * g1 + coeff_a2 * g2);
-      b = coeff_b0 * b + (coeff_a0 * b0 + coeff_a1 * b1 + coeff_a2 * b2);
-      a = coeff_b0 * a + (coeff_a0 * a0 + coeff_a1 * a1 + coeff_a2 * a2);
+    coeff_a0 = coeff[2];
+    coeff_a1 = coeff[3];
 
-      r2 = r1;
-      g2 = g1;
-      b2 = b1;
-      a2 = a1;
+    for (j = width - 1; j >= 0; j--) {
+      curr_out_r = curr_src_r * coeff_a0 + curr_src_r * coeff_a1 + prev_out_r * coeff_b1 + prev_prev_out_r * coeff_b2;
+      curr_out_g = curr_src_g * coeff_a0 + curr_src_g * coeff_a1 + prev_out_g * coeff_b1 + prev_prev_out_g * coeff_b2;
+      curr_out_b = curr_src_b * coeff_a0 + curr_src_b * coeff_a1 + prev_out_b * coeff_b1 + prev_prev_out_b * coeff_b2;
+      curr_out_a = curr_src_a * coeff_a0 + curr_src_a * coeff_a1 + prev_out_a * coeff_b1 + prev_prev_out_a * coeff_b2;
 
-      r1 = r0;
-      g1 = g0;
-      b1 = b0;
-      a1 = a0;
+      prev_prev_out_r = prev_out_r;
+      prev_prev_out_g = prev_out_g;
+      prev_prev_out_b = prev_out_b;
+      prev_prev_out_a = prev_out_a;
 
-      r0 = r;
-      g0 = g;
-      b0 = b;
-      a0 = a;
+      prev_out_r = curr_out_r;
+      prev_out_g = curr_out_g;
+      prev_out_b = curr_out_b;
+      prev_out_a = curr_out_a;
 
-      out_offs -= height;
+      prev_src_r = curr_src_r;
+      prev_src_g = curr_src_g;
+      prev_src_b = curr_src_b;
+      prev_src_a = curr_src_a;
 
-      /*eslint-disable computed-property-spacing*/
-      out[out_offs] = clampTo8((r + 0.5) |0) |
-                     (clampTo8((g + 0.5) |0) << 8) |
-                     (clampTo8((b + 0.5) |0) << 16) |
-                     (clampTo8((a + 0.5) |0) << 24);
+      rgba = src[src_index];
+      curr_src_r = rgba & 0xff;
+      curr_src_g = (rgba >> 8) & 0xff;
+      curr_src_b = (rgba >> 16) & 0xff;
+      curr_src_a = (rgba >> 24) & 0xff;
+
+      rgba = ((line[line_index] + prev_out_r) << 0) +
+        ((line[line_index + 1] + prev_out_g) << 8) +
+        ((line[line_index + 2] + prev_out_b) << 16) +
+        ((line[line_index + 3] + prev_out_a) << 24);
+
+      out[out_index] = rgba;
+
+      src_index--;
+      line_index -= 4;
+      out_index -= height;
     }
   }
-  // console.timeEnd('convolve');
-};
+}
 
 
-var blurRGBA = function (src, width, height, radius) {
+function blurRGBA(src, width, height, radius) {
   // Quick exit on zero radius
   if (!radius) { return; }
 
@@ -168,12 +185,12 @@ var blurRGBA = function (src, width, height, radius) {
   var src32 = new Uint32Array(src.buffer);
 
   var out      = new Uint32Array(src32.length),
-      tmp_line = new Float32Array(width * 4);
+      tmp_line = new Float32Array(Math.max(width, height) * 4);
 
   var coeff = gaussCoef(radius);
 
   convolveRGBA(src32, out, tmp_line, coeff, width, height, radius);
   convolveRGBA(out, src32, tmp_line, coeff, height, width, radius);
-};
+}
 
 module.exports = blurRGBA;
