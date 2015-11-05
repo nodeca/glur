@@ -1,3 +1,9 @@
+1.1.0 / WIP
+------------------
+
+- Changed interpolation fn to one from Intel's whitepaper.
+
+
 1.0.1 / 2015-11-04
 ------------------
 

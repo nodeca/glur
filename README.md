@@ -47,8 +47,6 @@ References
 
 - [IIR Gaussian Blur Filter Implementation using Intel® Advanced Vector Extensions](https://software.intel.com/en-us/articles/iir-gaussian-blur-filter-implementation-using-intel-advanced-vector-extensions) -
   very good article with technical details for programmers.
-- [Быстрое размытие по Гауссу](http://habrahabr.ru/post/151157/) (RUS) - alternative
-  with more simple aproximation function (we use it here in glur).
 
 
 Licence
