@@ -108,7 +108,7 @@ function blurMono16(src, width, height, radius) {
   if (!radius) { return; }
 
   var out      = new Uint16Array(src.length),
-      tmp_line = new Float32Array(width);
+      tmp_line = new Float32Array(Math.max(width, height));
 
   var coeff = gaussCoef(radius);
 
