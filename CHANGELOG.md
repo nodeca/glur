@@ -1,3 +1,10 @@
+1.1.2 / 2016-05-05
+------------------
+
+- Fixed typo in RGBA blur math equations (regression from 1.1.0),
+  thanks to @tonykwok.
+
+
 1.1.1 / 2015-11-10
 ------------------
 

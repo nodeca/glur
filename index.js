@@ -136,10 +136,10 @@ function convolveRGBA(src, out, line, coeff, width, height) {
     coeff_a1 = coeff[3];
 
     for (j = width - 1; j >= 0; j--) {
-      curr_out_r = curr_src_r * coeff_a0 + curr_src_r * coeff_a1 + prev_out_r * coeff_b1 + prev_prev_out_r * coeff_b2;
-      curr_out_g = curr_src_g * coeff_a0 + curr_src_g * coeff_a1 + prev_out_g * coeff_b1 + prev_prev_out_g * coeff_b2;
-      curr_out_b = curr_src_b * coeff_a0 + curr_src_b * coeff_a1 + prev_out_b * coeff_b1 + prev_prev_out_b * coeff_b2;
-      curr_out_a = curr_src_a * coeff_a0 + curr_src_a * coeff_a1 + prev_out_a * coeff_b1 + prev_prev_out_a * coeff_b2;
+      curr_out_r = curr_src_r * coeff_a0 + prev_src_r * coeff_a1 + prev_out_r * coeff_b1 + prev_prev_out_r * coeff_b2;
+      curr_out_g = curr_src_g * coeff_a0 + prev_src_g * coeff_a1 + prev_out_g * coeff_b1 + prev_prev_out_g * coeff_b2;
+      curr_out_b = curr_src_b * coeff_a0 + prev_src_b * coeff_a1 + prev_out_b * coeff_b1 + prev_prev_out_b * coeff_b2;
+      curr_out_a = curr_src_a * coeff_a0 + prev_src_a * coeff_a1 + prev_out_a * coeff_b1 + prev_prev_out_a * coeff_b2;
 
       prev_prev_out_r = prev_out_r;
       prev_prev_out_g = prev_out_g;
