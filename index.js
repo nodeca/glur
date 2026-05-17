@@ -3,8 +3,6 @@
 // https://software.intel.com/en-us/articles/iir-gaussian-blur-filter
 // -implementation-using-intel-advanced-vector-extensions
 
-let a0, a1, a2, a3, b1, b2, left_corner, right_corner
-
 function gaussCoef (sigma) {
   if (sigma < 0.5) {
     sigma = 0.5
@@ -15,14 +13,14 @@ function gaussCoef (sigma) {
     g2 = Math.exp(-2 * a),
     k = (1 - g1) * (1 - g1) / (1 + 2 * a * g1 - g2)
 
-  a0 = k
-  a1 = k * (a - 1) * g1
-  a2 = k * (a + 1) * g1
-  a3 = -k * g2
-  b1 = 2 * g1
-  b2 = -g2
-  left_corner = (a0 + a1) / (1 - b1 - b2)
-  right_corner = (a2 + a3) / (1 - b1 - b2)
+  const a0 = k
+  const a1 = k * (a - 1) * g1
+  const a2 = k * (a + 1) * g1
+  const a3 = -k * g2
+  const b1 = 2 * g1
+  const b2 = -g2
+  const left_corner = (a0 + a1) / (1 - b1 - b2)
+  const right_corner = (a2 + a3) / (1 - b1 - b2)
 
   // Attempt to force type to FP32.
   return new Float32Array([a0, a1, a2, a3, b1, b2, left_corner, right_corner])
