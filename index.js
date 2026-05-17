@@ -3,17 +3,17 @@
 // https://software.intel.com/en-us/articles/iir-gaussian-blur-filter
 // -implementation-using-intel-advanced-vector-extensions
 
-var a0, a1, a2, a3, b1, b2, left_corner, right_corner
+let a0, a1, a2, a3, b1, b2, left_corner, right_corner
 
 function gaussCoef (sigma) {
   if (sigma < 0.5) {
     sigma = 0.5
   }
 
-  var a = Math.exp(0.726 * 0.726) / sigma,
-      g1 = Math.exp(-a),
-      g2 = Math.exp(-2 * a),
-      k = (1 - g1) * (1 - g1) / (1 + 2 * a * g1 - g2)
+  const a = Math.exp(0.726 * 0.726) / sigma,
+    g1 = Math.exp(-a),
+    g2 = Math.exp(-2 * a),
+    k = (1 - g1) * (1 - g1) / (1 + 2 * a * g1 - g2)
 
   a0 = k
   a1 = k * (a - 1) * g1
@@ -31,16 +31,16 @@ function gaussCoef (sigma) {
 function convolveRGBA (src, out, line, coeff, width, height) {
   // takes src image and writes the blurred and transposed result into out
 
-  var rgba
-  var prev_src_r, prev_src_g, prev_src_b, prev_src_a
-  var curr_src_r, curr_src_g, curr_src_b, curr_src_a
-  var curr_out_r, curr_out_g, curr_out_b, curr_out_a
-  var prev_out_r, prev_out_g, prev_out_b, prev_out_a
-  var prev_prev_out_r, prev_prev_out_g, prev_prev_out_b, prev_prev_out_a
+  let rgba
+  let prev_src_r, prev_src_g, prev_src_b, prev_src_a
+  let curr_src_r, curr_src_g, curr_src_b, curr_src_a
+  let curr_out_r, curr_out_g, curr_out_b, curr_out_a
+  let prev_out_r, prev_out_g, prev_out_b, prev_out_a
+  let prev_prev_out_r, prev_prev_out_g, prev_prev_out_b, prev_prev_out_a
 
-  var src_index, out_index, line_index
-  var i, j
-  var coeff_a0, coeff_a1, coeff_b1, coeff_b2
+  let src_index, out_index, line_index
+  let i, j
+  let coeff_a0, coeff_a1, coeff_b1, coeff_b2
 
   for (i = 0; i < height; i++) {
     src_index = i * width
@@ -181,12 +181,12 @@ function blurRGBA (src, width, height, radius) {
   if (!radius) { return }
 
   // Unify input data type, to keep convolver calls isomorphic
-  var src32 = new Uint32Array(src.buffer)
+  const src32 = new Uint32Array(src.buffer)
 
-  var out = new Uint32Array(src32.length),
-      tmp_line = new Float32Array(Math.max(width, height) * 4)
+  const out = new Uint32Array(src32.length),
+    tmp_line = new Float32Array(Math.max(width, height) * 4)
 
-  var coeff = gaussCoef(radius)
+  const coeff = gaussCoef(radius)
 
   convolveRGBA(src32, out, tmp_line, coeff, width, height, radius)
   convolveRGBA(out, src32, tmp_line, coeff, height, width, radius)

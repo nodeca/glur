@@ -2,20 +2,20 @@
 
 'use strict'
 
-var path = require('path')
-var fs = require('fs')
-var util = require('util')
-var Benchmark = require('benchmark')
-var ansi = require('ansi')
-var cursor = ansi(process.stdout)
+const path = require('path')
+const fs = require('fs')
+const util = require('util')
+const Benchmark = require('benchmark')
+const ansi = require('ansi')
+const cursor = ansi(process.stdout)
 
-var IMPLS_DIRECTORY = path.join(__dirname, 'implementations')
-var IMPLS_PATHS = {}
-var IMPLS = []
+const IMPLS_DIRECTORY = path.join(__dirname, 'implementations')
+const IMPLS_PATHS = {}
+const IMPLS = []
 
 fs.readdirSync(IMPLS_DIRECTORY).sort().forEach(function (name) {
-  var file = path.join(IMPLS_DIRECTORY, name)
-  var code = require(file)
+  const file = path.join(IMPLS_DIRECTORY, name)
+  const code = require(file)
 
   IMPLS_PATHS[name] = file
   IMPLS.push({
@@ -24,31 +24,31 @@ fs.readdirSync(IMPLS_DIRECTORY).sort().forEach(function (name) {
   })
 })
 
-var SAMPLES_SRC = [{
+const SAMPLES_SRC = [{
   name: 'Big',
   width: 3200,
   height: 2500,
   radius: 50
 }]
 
-var SAMPLES = []
+const SAMPLES = []
 
 SAMPLES_SRC.forEach(function (sample) {
-  var content = {}
+  const content = {}
 
   content.width = sample.width
   content.height = sample.height
   content.radius = sample.radius
   content.buffer = new Uint32Array(sample.width * sample.height)
 
-  var title = util.format('(%d bytes raw / [%dx%d]px)',
-                           content.buffer.length, content.width, content.height)
+  const title = util.format('(%d bytes raw / [%dx%d]px)',
+    content.buffer.length, content.width, content.height)
 
   function onComplete () {
     cursor.write('\n')
   }
 
-  var suite = new Benchmark.Suite(title, {
+  const suite = new Benchmark.Suite(title, {
     onError (err) {
       console.log(err.target.error)
     },
@@ -77,11 +77,9 @@ SAMPLES_SRC.forEach(function (sample) {
         if (impl.code.async) {
           impl.code.run(content, function () {
             deferred.resolve()
-            return
           })
         } else {
           impl.code.run(content)
-          return
         }
       }
     })
@@ -96,7 +94,7 @@ SAMPLES_SRC.forEach(function (sample) {
 })
 
 function select (patterns) {
-  var result = []
+  const result = []
 
   if (!(patterns instanceof Array)) {
     patterns = [patterns]
@@ -118,7 +116,7 @@ function select (patterns) {
 }
 
 function run (files) {
-  var selected = select(files)
+  const selected = select(files)
 
   if (selected.length > 0) {
     console.log('Selected samples: (%d of %d)', selected.length, SAMPLES.length)

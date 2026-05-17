@@ -3,17 +3,17 @@
 // https://software.intel.com/en-us/articles/iir-gaussian-blur-filter
 // -implementation-using-intel-advanced-vector-extensions
 
-var a0, a1, a2, a3, b1, b2, left_corner, right_corner
+let a0, a1, a2, a3, b1, b2, left_corner, right_corner
 
 function gaussCoef (sigma) {
   if (sigma < 0.5) {
     sigma = 0.5
   }
 
-  var a = Math.exp(0.726 * 0.726) / sigma,
-      g1 = Math.exp(-a),
-      g2 = Math.exp(-2 * a),
-      k = (1 - g1) * (1 - g1) / (1 + 2 * a * g1 - g2)
+  const a = Math.exp(0.726 * 0.726) / sigma,
+    g1 = Math.exp(-a),
+    g2 = Math.exp(-2 * a),
+    k = (1 - g1) * (1 - g1) / (1 + 2 * a * g1 - g2)
 
   a0 = k
   a1 = k * (a - 1) * g1
@@ -31,10 +31,10 @@ function gaussCoef (sigma) {
 function convolveMono16 (src, out, line, coeff, width, height) {
   // takes src image and writes the blurred and transposed result into out
 
-  var prev_src, curr_src, curr_out, prev_out, prev_prev_out
-  var src_index, out_index, line_index
-  var i, j
-  var coeff_a0, coeff_a1, coeff_b1, coeff_b2
+  let prev_src, curr_src, curr_out, prev_out, prev_prev_out
+  let src_index, out_index, line_index
+  let i, j
+  let coeff_a0, coeff_a1, coeff_b1, coeff_b2
 
   for (i = 0; i < height; i++) {
     src_index = i * width
@@ -106,10 +106,10 @@ function blurMono16 (src, width, height, radius) {
   // Quick exit on zero radius
   if (!radius) { return }
 
-  var out = new Uint16Array(src.length),
-      tmp_line = new Float32Array(Math.max(width, height))
+  const out = new Uint16Array(src.length),
+    tmp_line = new Float32Array(Math.max(width, height))
 
-  var coeff = gaussCoef(radius)
+  const coeff = gaussCoef(radius)
 
   convolveMono16(src, out, tmp_line, coeff, width, height, radius)
   convolveMono16(out, src, tmp_line, coeff, height, width, radius)
