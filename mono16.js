@@ -102,12 +102,11 @@ function convolveMono16 (src, out, line, coeff, width, height) {
   }
 }
 
-
 function blurMono16 (src, width, height, radius) {
   // Quick exit on zero radius
   if (!radius) { return }
 
-  var out      = new Uint16Array(src.length),
+  var out = new Uint16Array(src.length),
       tmp_line = new Float32Array(Math.max(width, height))
 
   var coeff = gaussCoef(radius)

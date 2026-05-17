@@ -176,7 +176,6 @@ function convolveRGBA (src, out, line, coeff, width, height) {
   }
 }
 
-
 function blurRGBA (src, width, height, radius) {
   // Quick exit on zero radius
   if (!radius) { return }
@@ -184,7 +183,7 @@ function blurRGBA (src, width, height, radius) {
   // Unify input data type, to keep convolver calls isomorphic
   var src32 = new Uint32Array(src.buffer)
 
-  var out      = new Uint32Array(src32.length),
+  var out = new Uint32Array(src32.length),
       tmp_line = new Float32Array(Math.max(width, height) * 4)
 
   var coeff = gaussCoef(radius)

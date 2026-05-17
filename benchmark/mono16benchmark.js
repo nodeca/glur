@@ -1,20 +1,17 @@
 #!/usr/bin/env node
 'use strict'
 
-
-var util      = require('util')
+var util = require('util')
 var Benchmark = require('benchmark')
-var ansi      = require('ansi')
-var cursor    = ansi(process.stdout)
+var ansi = require('ansi')
+var cursor = ansi(process.stdout)
 
-
-var mono16    = require('../mono16')
-
+var mono16 = require('../mono16')
 
 var IMPLS = [{
   name: 'glur-mono16',
   code: {
-    run: function (data) {
+    run (data) {
       return mono16(data.buffer, data.width, data.height, data.radius)
     }
   }
@@ -29,26 +26,23 @@ var SAMPLES_SRC = [{
 
 var SAMPLES = []
 
-
 SAMPLES_SRC.forEach(function (sample) {
   var content = {}
 
-  content.width  = sample.width
+  content.width = sample.width
   content.height = sample.height
   content.radius = sample.radius
   content.buffer = new Uint16Array(sample.width * sample.height)
 
-  var title  = util.format('(%d bytes raw / [%dx%d]px)',
+  var title = util.format('(%d bytes raw / [%dx%d]px)',
                            content.buffer.length, content.width, content.height)
-
 
   function onComplete () {
     cursor.write('\n')
   }
 
-
   var suite = new Benchmark.Suite(title, {
-    onError: function (err) {
+    onError (err) {
       console.log(err.target.error)
     },
 
@@ -56,7 +50,7 @@ SAMPLES_SRC.forEach(function (sample) {
       console.log('\nSample: %s %s', sample.name, title)
     },
 
-    onComplete: onComplete
+    onComplete
   })
 
   IMPLS.forEach(function (impl) {
@@ -68,11 +62,11 @@ SAMPLES_SRC.forEach(function (sample) {
         cursor.write(' > ' + event.target)
       },
 
-      onComplete: onComplete,
+      onComplete,
 
       defer: !!impl.code.async,
 
-      fn: function (deferred) {
+      fn (deferred) {
         if (impl.code.async) {
           impl.code.run(content, function () {
             deferred.resolve()
@@ -86,15 +80,13 @@ SAMPLES_SRC.forEach(function (sample) {
     })
   })
 
-
   SAMPLES.push({
     name: sample.name,
-    title: title,
-    content: content,
-    suite: suite
+    title,
+    content,
+    suite
   })
 })
-
 
 function select (patterns) {
   var result = []
@@ -118,7 +110,6 @@ function select (patterns) {
   return result
 }
 
-
 function run (files) {
   var selected = select(files)
 
@@ -136,10 +127,10 @@ function run (files) {
   })
 }
 
-module.exports.IMPLS             = IMPLS
-module.exports.SAMPLES           = SAMPLES
-module.exports.select            = select
-module.exports.run               = run
+module.exports.IMPLS = IMPLS
+module.exports.SAMPLES = SAMPLES
+module.exports.select = select
+module.exports.run = run
 
 run(process.argv.slice(2).map(function (source) {
   return new RegExp(source, 'i')

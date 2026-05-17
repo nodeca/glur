@@ -1,20 +1,17 @@
 #!/usr/bin/env node
 
-
 'use strict'
 
-
-var path      = require('path')
-var fs        = require('fs')
-var util      = require('util')
+var path = require('path')
+var fs = require('fs')
+var util = require('util')
 var Benchmark = require('benchmark')
-var ansi      = require('ansi')
-var cursor    = ansi(process.stdout)
+var ansi = require('ansi')
+var cursor = ansi(process.stdout)
 
 var IMPLS_DIRECTORY = path.join(__dirname, 'implementations')
 var IMPLS_PATHS = {}
 var IMPLS = []
-
 
 fs.readdirSync(IMPLS_DIRECTORY).sort().forEach(function (name) {
   var file = path.join(IMPLS_DIRECTORY, name)
@@ -22,11 +19,10 @@ fs.readdirSync(IMPLS_DIRECTORY).sort().forEach(function (name) {
 
   IMPLS_PATHS[name] = file
   IMPLS.push({
-    name: name,
-    code: code
+    name,
+    code
   })
 })
-
 
 var SAMPLES_SRC = [{
   name: 'Big',
@@ -37,26 +33,23 @@ var SAMPLES_SRC = [{
 
 var SAMPLES = []
 
-
 SAMPLES_SRC.forEach(function (sample) {
   var content = {}
 
-  content.width  = sample.width
+  content.width = sample.width
   content.height = sample.height
   content.radius = sample.radius
   content.buffer = new Uint32Array(sample.width * sample.height)
 
-  var title  = util.format('(%d bytes raw / [%dx%d]px)',
+  var title = util.format('(%d bytes raw / [%dx%d]px)',
                            content.buffer.length, content.width, content.height)
-
 
   function onComplete () {
     cursor.write('\n')
   }
 
-
   var suite = new Benchmark.Suite(title, {
-    onError: function (err) {
+    onError (err) {
       console.log(err.target.error)
     },
 
@@ -64,7 +57,7 @@ SAMPLES_SRC.forEach(function (sample) {
       console.log('\nSample: %s %s', sample.name, title)
     },
 
-    onComplete: onComplete
+    onComplete
   })
 
   IMPLS.forEach(function (impl) {
@@ -76,11 +69,11 @@ SAMPLES_SRC.forEach(function (sample) {
         cursor.write(' > ' + event.target)
       },
 
-      onComplete: onComplete,
+      onComplete,
 
       defer: !!impl.code.async,
 
-      fn: function (deferred) {
+      fn (deferred) {
         if (impl.code.async) {
           impl.code.run(content, function () {
             deferred.resolve()
@@ -94,15 +87,13 @@ SAMPLES_SRC.forEach(function (sample) {
     })
   })
 
-
   SAMPLES.push({
     name: sample.name,
-    title: title,
-    content: content,
-    suite: suite
+    title,
+    content,
+    suite
   })
 })
-
 
 function select (patterns) {
   var result = []
@@ -126,7 +117,6 @@ function select (patterns) {
   return result
 }
 
-
 function run (files) {
   var selected = select(files)
 
@@ -144,12 +134,12 @@ function run (files) {
   })
 }
 
-module.exports.IMPLS_DIRECTORY   = IMPLS_DIRECTORY
-module.exports.IMPLS_PATHS       = IMPLS_PATHS
-module.exports.IMPLS             = IMPLS
-module.exports.SAMPLES           = SAMPLES
-module.exports.select            = select
-module.exports.run               = run
+module.exports.IMPLS_DIRECTORY = IMPLS_DIRECTORY
+module.exports.IMPLS_PATHS = IMPLS_PATHS
+module.exports.IMPLS = IMPLS
+module.exports.SAMPLES = SAMPLES
+module.exports.select = select
+module.exports.run = run
 
 run(process.argv.slice(2).map(function (source) {
   return new RegExp(source, 'i')
