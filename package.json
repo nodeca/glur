@@ -9,8 +9,12 @@
   "homepage": "https://github.com/andr83/glur/issues",
   "license": "MIT",
   "repository": "nodeca/glur",
+  "types": "./lib/index.d.ts",
   "exports": {
-    ".": "./lib/index.mjs",
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.mjs"
+    },
     "./package.json": "./package.json"
   },
   "files": [
