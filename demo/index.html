@@ -31,13 +31,9 @@
 
 <input id="upload" type="file" style="position: absolute; left: -2000px">
 
-<script>// Stub to run node module without browserification
-    var module = {};
-</script>
+<script type="module">
+    import blurRGBA from '../lib/blur_rgba.mjs';
 
-<script src="../index.js"></script>
-
-<script>
     var lastRadius,
         img = new Image();
 
@@ -57,7 +53,7 @@
 
         var start = performance.now();
 
-        module.exports(imageData.data, dst.width, dst.height, radius);
+        blurRGBA(imageData.data, dst.width, dst.height, radius);
 
         ctx.putImageData(imageData, 0, 0);
 

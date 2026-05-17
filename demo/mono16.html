@@ -31,13 +31,9 @@
 
 <input id="upload" type="file" style="position: absolute; left: -2000px">
 
-<script>// Stub to run node module without browserification
-    var module = {};
-</script>
+<script type="module">
+    import blurMono16 from '../lib/blur_mono16.mjs';
 
-<script src="../mono16.js"></script>
-
-<script>
     var lastRadius,
         img = new Image();
 
@@ -64,7 +60,7 @@
           dataMono16[i] = (data[4 * i] + data[4 * i + 1] + data[4 * i + 2]) / 3;
         }
 
-        module.exports(dataMono16, dst.width, dst.height, radius);
+        blurMono16(dataMono16, dst.width, dst.height, radius);
 
         for (i = 0; i < size; i++) {
           data[4 * i] = data[4 * i + 1] = data[4 * i + 2] = dataMono16[i];
