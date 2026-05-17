@@ -1,5 +1,3 @@
-<script src="https://cdn.jsdelivr.net/jquery/2.1.4/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/lodash/3.10.1/lodash.min.js"></script>
 <script src="./image-encoded.js"></script>
 
 <style>
@@ -34,69 +32,60 @@
 <script type="module">
     import blurRGBA from '../lib/blur_rgba.mjs';
 
-    var lastRadius,
-        img = new Image();
+    const dst    = document.getElementById('dst');
+    const slider = document.getElementById('slider');
+    const amount = document.getElementById('amount');
+    const upload = document.getElementById('upload');
+    const dstInfo = document.getElementById('dst-info');
 
-    img.src = imageEncoded;
+    function debounce(fn, delay) {
+        let timer;
+        return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); };
+    }
 
-    var fastBlurCanvas = _.debounce(function (radius) {
-        // Quick check if radius changed.
+    let lastRadius;
+    const img = new Image();
+
+    const fastBlurCanvas = debounce(function (radius) {
         if (radius === lastRadius) { return; }
         lastRadius = radius;
 
-        var dst = $('#dst')[0],
-            ctx = dst.getContext('2d');
-
+        const ctx = dst.getContext('2d');
         ctx.drawImage(img, 0, 0);
 
-        var imageData = ctx.getImageData(0, 0, dst.width, dst.height);
-
-        var start = performance.now();
+        const imageData = ctx.getImageData(0, 0, dst.width, dst.height);
+        const start = performance.now();
 
         blurRGBA(imageData.data, dst.width, dst.height, radius);
 
         ctx.putImageData(imageData, 0, 0);
-
-        $('#amount').val(radius + ' (' + (performance.now() - start).toFixed(2) + 'ms)');
+        amount.value = radius + ' (' + (performance.now() - start).toFixed(2) + 'ms)';
     }, 200);
 
     img.onload = function () {
-        var dst, ctx;
-
-        dst = $('#dst')[0];
         dst.width = img.width;
         dst.height = img.height;
+        dstInfo.textContent = img.width + ' x ' + img.height;
 
-        $('#dst-info').text(img.width + ' x ' + img.height);
-
-        ctx = dst.getContext('2d');
+        const ctx = dst.getContext('2d');
         ctx.drawImage(img, 0, 0);
 
         lastRadius = -Infinity;
-
-        fastBlurCanvas(Number($('#slider').val()));
+        fastBlurCanvas(Number(slider.value));
     };
 
-    $(function () {
-        $('#slider').on('change input', function () {
-            var radius = Number($('#slider').val());
-            $('#amount').val(radius);
-            fastBlurCanvas(radius);
-        });
+    img.src = imageEncoded;
 
-        $('#amount').val(Number($('#slider').val()));
+    slider.addEventListener('input', () => {
+        const radius = Number(slider.value);
+        amount.value = radius;
+        fastBlurCanvas(radius);
     });
 
-    $('#dst').on('click', function () {
-        $('#upload').trigger('click');
+    amount.value = Number(slider.value);
+    dst.addEventListener('click', () => upload.click());
+    upload.addEventListener('change', () => {
+        if (upload.files.length === 0) { return; }
+        img.src = URL.createObjectURL(upload.files[0]);
     });
-
-    $('#upload').on('change', function () {
-        var files = $(this)[0].files;
-
-        if (files.length === 0) { return; }
-
-        img.src = window.URL.createObjectURL(files[0]);
-    });
-
 </script>
