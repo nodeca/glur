@@ -1,3 +1,10 @@
+2.0.0 / 2026-05-17
+------------------
+
+- Migrated to ESM. Use `import { blurRGBA, blurMono16 } from 'glur'`.
+- Added TypeScript type declarations.
+
+
 1.1.2 / 2016-05-05
 ------------------
 

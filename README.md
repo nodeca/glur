@@ -1,10 +1,9 @@
 glur
 ====
 
-[![Build Status](https://travis-ci.org/nodeca/glur.svg?branch=master)](https://travis-ci.org/nodeca/glur)
 [![NPM version](https://img.shields.io/npm/v/glur.svg)](https://www.npmjs.org/package/glur)
 
-> Fast Gaussian Blur in pure JavaScript, via IIR filer. Speed does not depend on
+> Fast Gaussian Blur in pure JavaScript, via IIR filter. Speed does not depend on
 > blur radius.
 
 __[demo 1](http://nodeca.github.io/glur/demo)__,
@@ -15,23 +14,28 @@ Install
 -------
 
 ```bash
-npm install glur --save
+npm install glur
 ```
 
 
 API
 ---
 
-`require('glur')(src, width, height, radius)`
+```js
+import { blurRGBA, blurMono16 } from 'glur'
+```
 
-- __src__ - typed array with image RGBA data (will be updated with blured image).
+### blurRGBA(src, width, height, radius)
+
+- __src__ - `Uint8ClampedArray` or `Uint8Array` with RGBA image data (modified in place).
 - __width__ - image width.
 - __height__ - image height.
 - __radius__ - blur radius.
 
-`require('glur/mono16')(src, width, height, radius)` - the same as above, but
-input data is grayscale Uint16Array. Can be useful to calculate unsharp mask via
-brightness/ligthness channel.
+### blurMono16(src, width, height, radius)
+
+Same as above, but input is a grayscale `Uint16Array`. Useful for unsharp mask
+via brightness/lightness channel.
 
 
 Authors
