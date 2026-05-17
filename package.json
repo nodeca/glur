@@ -14,11 +14,13 @@
     "mono16.js"
   ],
   "scripts": {
-    "test": "./node_modules/.bin/eslint ."
+    "lint": "eslint .",
+    "test": "npm run lint"
   },
   "devDependencies": {
     "ansi": "0.3.x",
     "benchmark": "1.0.x",
-    "eslint": "^1.8.0"
+    "eslint": "^9",
+    "neostandard": "^0.13.0"
   }
 }
