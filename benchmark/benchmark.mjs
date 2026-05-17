@@ -1,21 +1,25 @@
 #!/usr/bin/env node
-'use strict'
 
-const util = require('util')
-const Benchmark = require('benchmark')
-const ansi = require('ansi')
+import path from 'path'
+import fs from 'fs'
+import util from 'util'
+import { fileURLToPath, pathToFileURL } from 'url'
+import Benchmark from 'benchmark'
+import ansi from 'ansi'
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const cursor = ansi(process.stdout)
 
-const mono16 = require('../mono16')
+const IMPLS_DIRECTORY = path.join(__dirname, 'implementations')
+const IMPLS_PATHS = {}
+const IMPLS = []
 
-const IMPLS = [{
-  name: 'glur-mono16',
-  code: {
-    run (data) {
-      return mono16(data.buffer, data.width, data.height, data.radius)
-    }
-  }
-}]
+for (const name of fs.readdirSync(IMPLS_DIRECTORY).sort()) {
+  const file = path.join(IMPLS_DIRECTORY, name, 'index.mjs')
+  const code = await import(pathToFileURL(file).href)
+  IMPLS_PATHS[name] = file
+  IMPLS.push({ name, code })
+}
 
 const SAMPLES_SRC = [{
   name: 'Big',
@@ -32,7 +36,7 @@ SAMPLES_SRC.forEach(function (sample) {
   content.width = sample.width
   content.height = sample.height
   content.radius = sample.radius
-  content.buffer = new Uint16Array(sample.width * sample.height)
+  content.buffer = new Uint32Array(sample.width * sample.height)
 
   const title = util.format('(%d bytes raw / [%dx%d]px)',
     content.buffer.length, content.width, content.height)
@@ -125,10 +129,7 @@ function run (files) {
   })
 }
 
-module.exports.IMPLS = IMPLS
-module.exports.SAMPLES = SAMPLES
-module.exports.select = select
-module.exports.run = run
+export { IMPLS_DIRECTORY, IMPLS_PATHS, IMPLS, SAMPLES, select, run }
 
 run(process.argv.slice(2).map(function (source) {
   return new RegExp(source, 'i')

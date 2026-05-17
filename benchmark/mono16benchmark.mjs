@@ -1,28 +1,20 @@
 #!/usr/bin/env node
 
-'use strict'
+import util from 'util'
+import Benchmark from 'benchmark'
+import ansi from 'ansi'
+import blurMono16 from '../lib/blur_mono16.mjs'
 
-const path = require('path')
-const fs = require('fs')
-const util = require('util')
-const Benchmark = require('benchmark')
-const ansi = require('ansi')
 const cursor = ansi(process.stdout)
 
-const IMPLS_DIRECTORY = path.join(__dirname, 'implementations')
-const IMPLS_PATHS = {}
-const IMPLS = []
-
-fs.readdirSync(IMPLS_DIRECTORY).sort().forEach(function (name) {
-  const file = path.join(IMPLS_DIRECTORY, name)
-  const code = require(file)
-
-  IMPLS_PATHS[name] = file
-  IMPLS.push({
-    name,
-    code
-  })
-})
+const IMPLS = [{
+  name: 'glur-mono16',
+  code: {
+    run (data) {
+      return blurMono16(data.buffer, data.width, data.height, data.radius)
+    }
+  }
+}]
 
 const SAMPLES_SRC = [{
   name: 'Big',
@@ -39,7 +31,7 @@ SAMPLES_SRC.forEach(function (sample) {
   content.width = sample.width
   content.height = sample.height
   content.radius = sample.radius
-  content.buffer = new Uint32Array(sample.width * sample.height)
+  content.buffer = new Uint16Array(sample.width * sample.height)
 
   const title = util.format('(%d bytes raw / [%dx%d]px)',
     content.buffer.length, content.width, content.height)
@@ -132,12 +124,7 @@ function run (files) {
   })
 }
 
-module.exports.IMPLS_DIRECTORY = IMPLS_DIRECTORY
-module.exports.IMPLS_PATHS = IMPLS_PATHS
-module.exports.IMPLS = IMPLS
-module.exports.SAMPLES = SAMPLES
-module.exports.select = select
-module.exports.run = run
+export { IMPLS, SAMPLES, select, run }
 
 run(process.argv.slice(2).map(function (source) {
   return new RegExp(source, 'i')

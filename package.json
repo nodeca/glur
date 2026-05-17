@@ -9,9 +9,12 @@
   "homepage": "https://github.com/andr83/glur/issues",
   "license": "MIT",
   "repository": "nodeca/glur",
+  "exports": {
+    ".": "./lib/index.mjs",
+    "./package.json": "./package.json"
+  },
   "files": [
-    "index.js",
-    "mono16.js"
+    "lib/"
   ],
   "scripts": {
     "lint": "eslint .",
